@@ -426,9 +426,8 @@ def render_sidebar():
     # About
     st.sidebar.markdown("### About")
     st.sidebar.markdown("""
-    This dashboard replicates the IGEES DOT
-    Economic Policy Unit weekly economic
-    indicators report with live data.
+    A dashboard tracking key Irish and European
+    economic indicators with live data.
 
     **Last updated:** {}
     """.format(datetime.now().strftime('%Y-%m-%d %H:%M')))
@@ -443,7 +442,7 @@ def main():
 
     # Title
     st.title("Economic Indicators")
-    st.markdown(f"**{report_date.strftime('%d %B %Y')}** | IGEES DOT Economic Policy Unit")
+    st.markdown(f"**{report_date.strftime('%d %B %Y')}**")
 
     st.markdown("---")
 
@@ -476,11 +475,7 @@ def main():
 
     # Footer
     st.markdown("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("*IGEES*")
-    with col2:
-        st.markdown("*DOT Economic Policy Unit*", unsafe_allow_html=True)
+    st.markdown("*Irish Economic Indicators Dashboard*")
 
 
 if __name__ == "__main__":
