@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.pdf
+output/
+*.log
+
+# Keep cache and data_store directories but ignore contents
+# (except for .gitkeep files)
+cache/*
+!cache/.gitkeep
+data_store/*
+!data_store/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
