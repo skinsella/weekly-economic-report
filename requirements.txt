@@ -6,11 +6,6 @@ requests
 yfinance
 python-dateutil
 reportlab
-svglib
-pycountry
 cachetools
 python-dotenv
-anthropic
-openpyxl
 beautifulsoup4
-lxml
