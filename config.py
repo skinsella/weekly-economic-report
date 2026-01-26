@@ -65,7 +65,52 @@ HEATMAP_COLORS = {
 
 # Report settings
 REPORT_TITLE = "Economic Indicators"
-REPORT_AUTHOR = "IGEES DOT Economic Policy Unit"
+REPORT_AUTHOR = "Irish Economic Indicators Dashboard"
+
+# Alert thresholds
+ALERT_THRESHOLDS = {
+    "pmi_contraction": 50.0,        # Below 50 = contraction warning
+    "pmi_severe": 45.0,             # Below 45 = severe contraction
+    "inflation_target": 2.0,        # ECB target
+    "inflation_warning": 3.0,       # Above 3% = warning
+    "inflation_critical": 5.0,      # Above 5% = critical
+    "bond_spread_warning": 0.35,    # Spread above 35bps = warning
+    "bond_spread_critical": 0.50,   # Spread above 50bps = critical
+    "sentiment_warning": 55.0,      # Below 55 = pessimistic
+    "sentiment_critical": 45.0,     # Below 45 = very pessimistic
+}
+
+# Theme settings
+THEMES = {
+    "light": {
+        "background": "#FFFFFF",
+        "secondary_background": "#F5F5F5",
+        "text": "#333333",
+        "card_background": "#FFFFFF",
+        "border": "#E0E0E0",
+        "primary": "#2E7D32",
+        "chart_background": "#FFFFFF",
+        "chart_grid": "#E0E0E0",
+    },
+    "dark": {
+        "background": "#1E1E1E",
+        "secondary_background": "#2D2D2D",
+        "text": "#E0E0E0",
+        "card_background": "#2D2D2D",
+        "border": "#444444",
+        "primary": "#4CAF50",
+        "chart_background": "#1E1E1E",
+        "chart_grid": "#444444",
+    }
+}
+
+# Date range presets (in days)
+DATE_PRESETS = {
+    "3 months": 90,
+    "6 months": 180,
+    "1 year": 365,
+    "2 years": 730,
+}
 
 # Date formatting
 DATE_FORMAT = "%d %B %Y"

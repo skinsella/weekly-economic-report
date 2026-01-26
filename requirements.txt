@@ -9,3 +9,4 @@ reportlab
 cachetools
 python-dotenv
 beautifulsoup4
+openpyxl
