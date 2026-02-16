@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-01-31T21:36:11.697045",
+  "updated_at": "2026-02-16T09:34:05.643296",
   "results": {
     "cso": {
       "live_register": 15,
       "cpi": 15,
       "unemployment": {
         "rate": 5.0,
-        "date": "January 2026"
+        "date": "February 2026"
       }
     },
     "ecb": {
@@ -14,32 +14,32 @@
       "latest_rates": {
         "eur_gbp": 0.868,
         "eur_usd": 1.186,
-        "date": "2026-01-02",
+        "date": "2026-01-18",
         "eur_gbp_wow": 0.0,
         "eur_usd_wow": 0.0
       },
-      "monthly_rates": 1
+      "monthly_rates": 2
     },
     "market": {
-      "brent": 30,
-      "gas": 30,
+      "brent": 301,
+      "gas": 301,
       "commodities": {
         "brent": {
-          "price": 66.91,
-          "wow": 0.0,
+          "price": 67.67,
+          "wow": -1.98,
           "yoy": 0.0
         },
         "gas": {
-          "price": 104.15,
-          "high": 122.15,
-          "low": 104.15
+          "price": 7.48,
+          "high": 18.65,
+          "low": 7.48
         }
       },
       "bonds": {
         "ireland_10y": 3.057,
         "germany_10y": 2.945,
         "spread": 0.112,
-        "date": "2026-01-31"
+        "date": "2026-02-16"
       },
       "monthly_bonds": 15,
       "sentiment": 15,
@@ -48,7 +48,7 @@
         "wow": -3.91,
         "yoy": -33.54,
         "mom": 7.14,
-        "date": "2026-01-31"
+        "date": "2026-02-16"
       },
       "insolvency": 5
     },
