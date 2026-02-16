@@ -7,6 +7,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 import json
+import re
 
 
 class CSODataFetcher:
@@ -46,17 +47,22 @@ class CSODataFetcher:
             dim_info = {}
             dim_order = data.get('id', [])
 
+            dim_columns = {}
             for dim_name in dim_order:
                 dim = dimensions.get(dim_name, {})
                 category = dim.get('category', {})
                 index = category.get('index', {})
                 label = category.get('label', {})
+                dim_label = dim.get('label', dim_name)
+                dim_columns[dim_name] = dim_label
 
-                # Handle both dict and list formats
+                # Handle both dict (code->position) and list (ordered codes) formats.
                 if isinstance(index, dict):
-                    dim_info[dim_name] = {v: label.get(k, k) for k, v in index.items()}
+                    dim_info[dim_name] = {pos: label.get(code, code) for code, pos in index.items()}
                 else:
-                    dim_info[dim_name] = {i: label.get(str(i), str(i)) for i in range(len(index))}
+                    dim_info[dim_name] = {
+                        pos: label.get(code, code) for pos, code in enumerate(index)
+                    }
 
             # Build records
             sizes = [len(dim_info[d]) for d in dim_order]
@@ -69,8 +75,10 @@ class CSODataFetcher:
                     indices.insert(0, remaining % size)
                     remaining //= size
 
-                record = {dim_order[j]: dim_info[dim_order[j]].get(idx, idx)
-                         for j, idx in enumerate(indices)}
+                record = {
+                    dim_columns[dim_order[j]]: dim_info[dim_order[j]].get(idx, idx)
+                    for j, idx in enumerate(indices)
+                }
                 record['value'] = val
                 records.append(record)
 
@@ -79,6 +87,31 @@ class CSODataFetcher:
         except Exception as e:
             print(f"Error parsing JSON-stat: {e}")
             return pd.DataFrame()
+
+    @staticmethod
+    def _find_column(df: pd.DataFrame, exact: Optional[str] = None, contains: Optional[list] = None) -> Optional[str]:
+        """Find a column by exact name or contains matching (case-insensitive)."""
+        if exact and exact in df.columns:
+            return exact
+        if contains:
+            for col in df.columns:
+                lower = str(col).lower()
+                if all(token in lower for token in contains):
+                    return col
+        return None
+
+    @staticmethod
+    def _parse_month_series(series: pd.Series) -> pd.Series:
+        """Parse month labels/codes from CSO (e.g., 202601 or '2026 January')."""
+        as_str = series.astype(str).str.strip()
+        parsed = pd.to_datetime(as_str, format='%Y%m', errors='coerce')
+        if parsed.notna().any():
+            return parsed
+        parsed = pd.to_datetime(as_str, format='%Y %B', errors='coerce')
+        if parsed.notna().any():
+            return parsed
+        # Last resort for variants such as '2026-01'
+        return pd.to_datetime(as_str, errors='coerce')
 
     def get_live_register(self, months: int = 24) -> pd.DataFrame:
         """
@@ -95,19 +128,40 @@ class CSODataFetcher:
 
         # Filter and process
         try:
+            month_col = self._find_column(df, exact='Month') or self._find_column(df, contains=['month'])
+            stat_col = self._find_column(df, exact='Statistic') or self._find_column(df, contains=['stat'])
+            age_col = self._find_column(df, exact='Age Group') or self._find_column(df, contains=['age'])
+            sex_col = self._find_column(df, exact='Sex') or self._find_column(df, contains=['sex'])
+
+            if not month_col or not stat_col:
+                raise ValueError("Required Month/Statistic columns not found")
+
+            if age_col:
+                all_ages = df[age_col].astype(str).str.contains('all ages', case=False, na=False)
+                if all_ages.any():
+                    df = df[all_ages]
+            if sex_col:
+                both_sexes = df[sex_col].astype(str).str.contains('both sexes', case=False, na=False)
+                if both_sexes.any():
+                    df = df[both_sexes]
+
             # Get the last N months
-            df['date'] = pd.to_datetime(df['Month'], format='%YM%m', errors='coerce')
+            df['date'] = self._parse_month_series(df[month_col])
             df = df.dropna(subset=['date'])
             df = df.sort_values('date', ascending=False).head(months * 3)  # Extra for filtering
 
             # Pivot to get unadjusted and seasonally adjusted
             result = df.pivot_table(
                 index='date',
-                columns='Statistic',
+                columns=stat_col,
                 values='value',
                 aggfunc='first'
             ).reset_index()
 
+            if 'Persons on the Live Register' in result.columns:
+                result = result.rename(columns={
+                    'Persons on the Live Register': 'Persons on the Live Register (Unadjusted)'
+                })
             result = result.sort_values('date', ascending=False).head(months)
             return result
 
@@ -142,20 +196,67 @@ class CSODataFetcher:
             return self._get_fallback_cpi()
 
         try:
-            df['date'] = pd.to_datetime(df['Month'], format='%YM%m', errors='coerce')
+            month_col = self._find_column(df, exact='Month') or self._find_column(df, contains=['month'])
+            stat_col = self._find_column(df, exact='Statistic') or self._find_column(df, contains=['stat'])
+            commodity_col = self._find_column(df, exact='Commodity Group') or self._find_column(df, contains=['commodity'])
+            if not month_col:
+                raise ValueError("Month column not found in CPI data")
+
+            df['date'] = self._parse_month_series(df[month_col])
             df = df.dropna(subset=['date'])
 
             # Filter for annual percentage change
-            annual_change = df[df['Statistic'].str.contains('Annual', case=False, na=False)]
+            annual_change = pd.DataFrame()
+            if stat_col:
+                annual_change = df[df[stat_col].astype(str).str.contains('annual', case=False, na=False)]
 
-            result = annual_change.pivot_table(
-                index='date',
-                columns='Commodity Group',
-                values='value',
-                aggfunc='first'
-            ).reset_index()
+            if not annual_change.empty and commodity_col:
+                result = annual_change.pivot_table(
+                    index='date',
+                    columns=commodity_col,
+                    values='value',
+                    aggfunc='first'
+                ).reset_index()
+                all_items = next((c for c in result.columns if str(c).lower() == 'all items'), None)
+                if all_items:
+                    result['cpi'] = pd.to_numeric(result[all_items], errors='coerce')
+                elif 'value' in annual_change.columns:
+                    result['cpi'] = pd.to_numeric(result.filter(regex='^(?!date$).*').iloc[:, 0], errors='coerce')
+            else:
+                # If annual % series isn't available, derive YoY inflation from All items CPI index.
+                stat_filtered = df
+                if stat_col:
+                    stats = [str(s) for s in df[stat_col].dropna().unique()]
+                    base_stats = []
+                    for stat in stats:
+                        match = re.search(r'base dec (\d{4})=100', stat.lower())
+                        if match:
+                            base_stats.append((int(match.group(1)), stat))
+                    if base_stats:
+                        selected_stat = sorted(base_stats, reverse=True)[0][1]
+                        stat_filtered = df[df[stat_col] == selected_stat]
+                    elif stats:
+                        stat_filtered = df[df[stat_col] == stats[0]]
+
+                if commodity_col:
+                    base = stat_filtered[stat_filtered[commodity_col].astype(str).str.lower() == 'all items']
+                    if base.empty:
+                        base = stat_filtered
+                else:
+                    base = stat_filtered
+                base = base.sort_values('date').drop_duplicates(subset=['date'], keep='last')
+                base['index_value'] = pd.to_numeric(base['value'], errors='coerce')
+                base['cpi'] = base['index_value'].pct_change(12, fill_method=None) * 100
+                result = base[['date', 'cpi']].copy()
 
             result = result.sort_values('date', ascending=False).head(months)
+            if 'core_cpi' not in result.columns:
+                core_col = next(
+                    (c for c in result.columns if 'core' in str(c).lower() or 'excluding' in str(c).lower()),
+                    None
+                )
+                if core_col:
+                    result['core_cpi'] = pd.to_numeric(result[core_col], errors='coerce')
             return result
 
         except Exception as e:
@@ -215,10 +316,31 @@ class CSODataFetcher:
             return {'rate': 5.0, 'date': datetime.now().strftime('%B %Y')}
 
         try:
-            df['date'] = pd.to_datetime(df['Month'], format='%YM%m', errors='coerce')
-            latest = df.sort_values('date', ascending=False).iloc[0]
+            month_col = self._find_column(df, exact='Month') or self._find_column(df, contains=['month'])
+            stat_col = self._find_column(df, exact='Statistic') or self._find_column(df, contains=['stat'])
+            sex_col = self._find_column(df, exact='Sex') or self._find_column(df, contains=['sex'])
+            age_col = self._find_column(df, exact='Age Group') or self._find_column(df, contains=['age'])
+
+            if not month_col:
+                raise ValueError("Month column not found in unemployment data")
+
+            if stat_col:
+                rate_rows = df[stat_col].astype(str).str.contains('rate', case=False, na=False)
+                if rate_rows.any():
+                    df = df[rate_rows]
+            if sex_col:
+                both = df[sex_col].astype(str).str.contains('both sexes', case=False, na=False)
+                if both.any():
+                    df = df[both]
+            if age_col:
+                broad = df[age_col].astype(str).str.contains('15 - 74 years|all ages', case=False, na=False, regex=True)
+                if broad.any():
+                    df = df[broad]
+
+            df['date'] = self._parse_month_series(df[month_col])
+            latest = df.dropna(subset=['date']).sort_values('date', ascending=False).iloc[0]
             return {
-                'rate': latest['value'],
+                'rate': float(latest['value']),
                 'date': latest['date'].strftime('%B %Y')
             }
         except:

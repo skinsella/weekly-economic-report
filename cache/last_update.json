@@ -1,32 +1,32 @@
 {
-  "updated_at": "2026-02-16T09:34:05.643296",
+  "updated_at": "2026-02-16T09:44:59.814678",
   "results": {
     "cso": {
-      "live_register": 15,
-      "cpi": 15,
+      "live_register": 24,
+      "cpi": 24,
       "unemployment": {
-        "rate": 5.0,
-        "date": "February 2026"
+        "rate": 4.7,
+        "date": "January 2026"
       }
     },
     "ecb": {
-      "exchange_rates": 30,
+      "exchange_rates": 279,
       "latest_rates": {
-        "eur_gbp": 0.868,
+        "eur_gbp": 0.872,
         "eur_usd": 1.186,
-        "date": "2026-01-18",
-        "eur_gbp_wow": 0.0,
-        "eur_usd_wow": 0.0
+        "date": "2026-02-13",
+        "eur_gbp_wow": 0.17,
+        "eur_usd_wow": -0.2
       },
-      "monthly_rates": 2
+      "monthly_rates": 15
     },
     "market": {
       "brent": 301,
       "gas": 301,
       "commodities": {
         "brent": {
-          "price": 67.67,
-          "wow": -1.98,
+          "price": 67.59,
+          "wow": -2.1,
           "yoy": 0.0
         },
         "gas": {

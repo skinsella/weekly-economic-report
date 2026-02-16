@@ -17,7 +17,7 @@ class ECBDataFetcher:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'Accept': 'application/vnd.sdmx.data+csv;version=1.0.0',
+            'Accept': 'text/csv',
             'User-Agent': 'WeeklyEconomicReport/1.0'
         })
 
@@ -34,9 +34,11 @@ class ECBDataFetcher:
 
         try:
             response = self.session.get(url, params=params, timeout=30)
+            if response.status_code == 406:
+                # Retry with looser content negotiation if the endpoint rejects headers.
+                response = requests.get(url, params=params, headers={'Accept': 'text/csv'}, timeout=30)
             response.raise_for_status()
 
-            # Parse CSV response
             from io import StringIO
             df = pd.read_csv(StringIO(response.text))
             return df
@@ -120,11 +122,11 @@ class ECBDataFetcher:
             eur_usd_wow = 0.0
 
         return {
-            'eur_gbp': round(latest['eur_gbp'], 3),
-            'eur_usd': round(latest['eur_usd'], 3),
+            'eur_gbp': float(round(latest['eur_gbp'], 3)),
+            'eur_usd': float(round(latest['eur_usd'], 3)),
             'date': latest['date'].strftime('%Y-%m-%d') if hasattr(latest['date'], 'strftime') else str(latest['date']),
-            'eur_gbp_wow': round(eur_gbp_wow, 2),
-            'eur_usd_wow': round(eur_usd_wow, 2)
+            'eur_gbp_wow': float(round(eur_gbp_wow, 2)),
+            'eur_usd_wow': float(round(eur_usd_wow, 2))
         }
 
     def get_monthly_averages(self, months: int = 15) -> pd.DataFrame:
