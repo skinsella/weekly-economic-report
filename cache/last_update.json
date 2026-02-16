@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-02-16T09:45:55.347406",
+  "updated_at": "2026-02-16T10:00:17.869329",
   "results": {
     "cso": {
       "live_register": 24,
@@ -25,8 +25,8 @@
       "gas": 301,
       "commodities": {
         "brent": {
-          "price": 67.57,
-          "wow": -2.13,
+          "price": 67.48,
+          "wow": -2.26,
           "yoy": 0.0
         },
         "gas": {
