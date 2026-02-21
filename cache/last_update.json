@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-02-16T10:00:17.869329",
+  "updated_at": "2026-02-21T08:11:29.653864",
   "results": {
     "cso": {
       "live_register": 24,
@@ -10,13 +10,13 @@
       }
     },
     "ecb": {
-      "exchange_rates": 279,
+      "exchange_rates": 280,
       "latest_rates": {
-        "eur_gbp": 0.872,
+        "eur_gbp": 0.868,
         "eur_usd": 1.186,
-        "date": "2026-02-13",
-        "eur_gbp_wow": 0.17,
-        "eur_usd_wow": -0.2
+        "date": "2026-01-23",
+        "eur_gbp_wow": 0.0,
+        "eur_usd_wow": 0.0
       },
       "monthly_rates": 15
     },
@@ -25,21 +25,21 @@
       "gas": 301,
       "commodities": {
         "brent": {
-          "price": 67.48,
-          "wow": -2.26,
+          "price": 71.76,
+          "wow": 5.92,
           "yoy": 0.0
         },
         "gas": {
-          "price": 7.47,
+          "price": 7.62,
           "high": 18.65,
-          "low": 7.47
+          "low": 7.49
         }
       },
       "bonds": {
         "ireland_10y": 3.057,
         "germany_10y": 2.945,
         "spread": 0.112,
-        "date": "2026-02-16"
+        "date": "2026-02-21"
       },
       "monthly_bonds": 15,
       "sentiment": 15,
@@ -48,7 +48,7 @@
         "wow": -3.91,
         "yoy": -33.54,
         "mom": 7.14,
-        "date": "2026-02-16"
+        "date": "2026-02-21"
       },
       "insolvency": 5
     },
